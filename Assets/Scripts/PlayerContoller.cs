@@ -8,6 +8,10 @@ public class PlayerContoller : MonoBehaviour
     GameObject focalPoint;
     Renderer rendererPlayer;
     public float speed = 10.0f;
+    public float powerUpSpeed = 10.0f;
+    public GameObject PowerUpInd;
+
+    bool hasPowerUp = false;
     // Start is called before the first frame update
     void Start()
     {
@@ -31,7 +35,36 @@ public class PlayerContoller : MonoBehaviour
         {
             rendererPlayer.material.color = new Color(1.0f + fowardInput, 1.0f, 1.0f + fowardInput);
         }
+        PowerUpInd.transform.position = transform.position;
+    }
 
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("PowerUp"))
+        {
+            hasPowerUp = true;
+            Destroy(other.gameObject);
+            StartCoroutine(PowerUpCountDown());
+            PowerUpInd.SetActive(true);
+        }
+    }
 
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (hasPowerUp && collision.gameObject.CompareTag("Enemy"))
+        {
+            Debug.Log("Player has collid with" + collision.gameObject + "with powerup set to:" + hasPowerUp);
+            Rigidbody rbEnemy = collision.gameObject.GetComponent<Rigidbody>();
+            Vector3 awayDir = collision.gameObject.transform.position - transform.position;
+
+            rbEnemy.AddForce(awayDir * powerUpSpeed, ForceMode.Impulse);
+        }
+    }
+
+    IEnumerator PowerUpCountDown()
+    {
+        yield return new WaitForSeconds(8);
+        hasPowerUp = false;
+        PowerUpInd.SetActive(false);
     }
 }
